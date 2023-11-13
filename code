@@ -1,0 +1,155 @@
+
+from enum import Enum, auto
+from typing import List, Dict
+
+class Service(Enum): #service list
+    DINEIN = 3
+    TAKEAWAY = 4
+    DELIVERY = 5
+
+class Menu:
+    '''class to represent menu'''
+    def __init__(self):
+        self._items = {}  # Dictionary to hold menu items and prices
+
+    def updateMenu(self, dish_name, price):
+        self._items[dish_name] = price
+
+class Staff:
+    '''class to represent staff'''
+    def __init__(self, name, employee_id, branch):
+        self._name = name
+        self._employee_id = employee_id
+        self._branch = branch
+        self._role = None
+
+class Manager(Staff):
+    '''class to represent manager'''
+    def __init__(self, name, employee_id, branch):
+        super().__init__(name, employee_id, branch)
+        self._role = 'Manager'
+
+class Receptionist(Staff):
+    '''class to represent receptionist'''
+    def __init__(self, name, employee_id, branch):
+        super().__init__(name, employee_id, branch)
+        self._role = 'Receptionist'
+
+class Chef(Staff):
+    '''class to represent chef'''
+    def __init__(self, name, employee_id, branch):
+        super().__init__(name, employee_id, branch)
+        self._role = 'Chef'
+
+class Waiter(Staff):
+    '''class to represent waiter'''
+    def __init__(self, name, employee_id, branch):
+        super().__init__(name, employee_id, branch)
+        self._role = 'Waiter'
+
+class Order:
+    '''class to represent order'''
+    VAT_RATE = 0.05
+
+    def __init__(self, items, service, branch):
+        self._items = items
+        self._service = service
+        self._branch = branch
+        self._total_bill = 0
+
+    def calculateBill(self):
+        # Calculate the total bill for the order including service fee and VAT
+        subtotal = sum(self._branch._menu._items[item] for item in self._items)
+        service_fee = Service[self._service].value
+        self._total_bill = subtotal + service_fee
+        self._total_bill += self._total_bill * Order.VAT_RATE
+        return self._total_bill
+
+class Customer:
+    '''class to represent restaurant customer'''
+    def __init__(self, name, contact, address):
+        self._name = name
+        self._contact = contact
+        self._address = address
+        self._orders = []
+
+    def placeOrder(self, items, service, branch):
+        #places a new order for the customer and calculates its bill
+        order = Order(items, service, branch)
+        self._orders.append(order)
+        return order.calculateBill()
+
+class Branch:
+    '''class to represent a branch of the restaurant'''
+    def __init__(self, address, phone_number, manager):
+        self._address = address
+        self._phone_number = phone_number
+        self._manager = manager
+        self._staff = []
+        self._menu = Menu()
+
+    def addStaff(self, staff):
+        #adds a new staff member to the branch
+        self._staff.append(staff)
+
+class Restaurant:
+    '''class to represent the entire restaurant'''
+    def __init__(self, name):
+        self._name = name
+        self._totalEmployees = 0
+        self._branches = []
+
+    def addBranch(self, branch):
+        #adds a new branch to the restaurant
+        self._branches.append(branch)
+        self._totalEmployees += len(branch._staff)
+
+
+# Test case a: the addition of branches to the restaurant.
+def test_case_a():
+    happy_tummy = Restaurant("Happy Tummy")
+    manager = Manager("Mahreen", "001", None)
+    branch1 = Branch("123 Main St", "555-1234", manager)
+    happy_tummy.addBranch(branch1)
+    print(f"Branch added: {branch1._address}, managed by {branch1._manager._name}")
+    return happy_tummy
+
+# Test case b: the addition of services, staff to a branch.
+def test_case_b(happy_tummy):
+    branch = happy_tummy._branches[0]
+    chef = Chef("Gabriel Basques", "002", branch)
+    waiter = Waiter("Juwriya", "003", branch)
+    branch.addStaff(chef)
+    branch.addStaff(waiter)
+    print(f"Staff added: {chef._role} {chef._name}, {waiter._role} {waiter._name}")
+
+# Test case d: the addition of a menu item
+def test_case_d(happy_tummy):
+    branch = happy_tummy._branches[0]
+    branch._menu.updateMenu("Pizza", 10)
+    branch._menu.updateMenu("Salad", 5)
+    print(f"Menu updated: {branch._menu._items}")
+
+# Test case c: the addition of customers booking appointments
+def test_case_c(happy_tummy):
+    branch = happy_tummy._branches[0]
+    customer = Customer("Alice Johnson", "555-9876", "456 Elm St")
+    customer.placeOrder(["Pizza", "Salad"], "DINEIN", branch)
+    print(f"Customer {customer._name} placed an order.")
+
+# Test case e: the display of payment receipts for services upon checking out.
+def test_case_e(happy_tummy):
+    branch = happy_tummy._branches[0]
+    customer = Customer("Charlie Davidson", "555-4321", "789 Maple St")
+    total_bill = customer.placeOrder(["Pizza", "Salad"], "DINEIN", branch)
+    print(f"Customer {customer._name}'s order: ['Pizza', 'Salad']")
+    print(f"Service: Dine-In")
+    print(f"Total bill (including VAT): AED {total_bill:.2f}")
+
+restaurant = test_case_a()
+test_case_b(restaurant)
+test_case_d(restaurant)
+test_case_c(restaurant)
+test_case_e(restaurant)
+
+
